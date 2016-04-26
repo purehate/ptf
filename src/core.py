@@ -8,14 +8,13 @@ import select
 import readline
 import glob
 import platform
+import urllib2
 
 # tab completion
-
-
 def complete(text, state):
     a = (glob.glob(text + '*') + [None])[state].replace("__init__.py", "").replace(".py", "").replace("LICENSE", "").replace(
         "README.md", "").replace("config", "").replace("ptf", "").replace("readme", "").replace("src", "").replace("         ", "") + "/"
-    a = a.replace("modules//", "modules/")
+    a = a.replace("//", "/")
     if os.path.isfile(a[:-1] + ".py"):
         return a[:-1]
     else:
@@ -49,9 +48,16 @@ class bcolors:
     backCyan = '\033[46m'
     backWhite = '\033[47m'
 
+# custom parser for zaproxy
+def zaproxy():
+    file = urllib2.urlopen('https://raw.githubusercontent.com/zaproxy/zap-admin/master/ZapVersions.xml')
+    data = file.readlines()
+    file.close()
+    for url in data:
+        if "Linux.tar.gz" in url and "<url>" in url: return url.rstrip().replace("<url>", "").replace("</url>", "").strip()
+
+
 # get the main SET path
-
-
 def definepath():
     if os.path.isfile("ptf"):
         return os.getcwd()
@@ -104,7 +110,7 @@ def count_modules():
     return counter
 
 # version information
-grab_version = "1.6.5"
+grab_version = "1.7"
 
 # banner
 banner = bcolors.RED + r"""
@@ -143,7 +149,7 @@ banner += """        		""" + bcolors.backBlue + \
     """Version: %s""" % (grab_version) + bcolors.ENDC + "\n"
 
 banner += bcolors.YELLOW + bcolors.BOLD + """		     Codename: """ + \
-    bcolors.BLUE + """Goat Runner""" + "\n"
+    bcolors.BLUE + """Shiny Shine""" + "\n"
 
 banner += """		       """ + bcolors.ENDC + bcolors.backRed + \
     """Red Team Approved""" + bcolors.ENDC + "\n"
@@ -220,12 +226,10 @@ def module_parser(filename, term):
                 if term != "LAUNCHER":
                     if filename_short != "install_update_all":
                         if term != "X64_LOCATION":
-                            print_error("Warning, module %s was found but contains no %s field." % (
-                                filename_short, term))
-                            print_error(
-                                "Check the module again for errors and try again.")
-                            print_error(
-                                "Module has been removed from the list.")
+				if not "__init__" in filename_short:
+	                            print_error("Warning, module %s was found but contains no %s field." % (filename_short, term))
+                            	    print_error("Check the module again for errors and try again.")
+                            	    print_error("Module has been removed from the list.")
 
             return ""
 

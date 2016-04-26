@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-##########################################################################
+####################################################################################
 # The PenTesters Framework (PTF) - Automatic Penetration Testing Platform Creation
 # Written by: David Kennedy (ReL1K)
-# Twitter: @TrustedSec
+# Twitter: @TrustedSec, @HackingDave
 # Website: https://www.trustedsec.com
-##########################################################################
+####################################################################################
 
 import sys
 import subprocess
@@ -22,6 +22,7 @@ def create_launcher():
 # check for an Internet connection
 def check_internet():
     try:
+	print("[*] You can always type ./ptf --no-network-connection to skip the Internet check..")
         print("[*] Checking for an Internet connection...")
         rhost = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         rhost.connect(('google.com', 0))

@@ -50,7 +50,7 @@ if check_config("IGNORE_THESE_MODULES") is not None:
         print_info("Ignoring the following modules: " +
                    (", ").join(ignore_these))
 
-
+# ignore modules if they are specified in the ptf.config
 def ignore_module(module):
     result = False
     for check in ignore_these:
@@ -62,11 +62,10 @@ def ignore_module(module):
                 result = True
     if result:
         print_warning("Ignoring module: " + module)
+
     return result
 
 # check the folder structure
-
-
 def show_module():
     modules_path = os.getcwd() + "/modules/"
     print ("\n")
@@ -121,6 +120,9 @@ def use_module(module, all_trigger):
             # grab repository location
             repository_location = module_parser(
                 filename, "REPOSITORY_LOCATION")
+	
+	    # custom work for zaproxy
+            if "zaproxy" in repository_location: repository_location = zaproxy()
 
             # here we check if we need to do x86 or x64
             if module_parser(filename, "X64_LOCATION") != "":
@@ -223,6 +225,9 @@ def use_module(module, all_trigger):
 
             # if we are updating the tools
             if prompt.lower() == "update" or prompt.lower() == "upgrade":
+	      # if we are using ignore modules then don't process
+	      if not "__init__.py" in filename and not ignore_module(filename):
+
 
                 # move to the location
                 if os.path.isdir(install_location):
@@ -318,6 +323,8 @@ def use_module(module, all_trigger):
 
             # if we want to install it
             if prompt.lower() == "install":
+	      # if we are using ignore modules then don't process
+	      if not "__init__.py" in filename and not ignore_module(filename):
 
                 # grab the OS type, DEBIAN, FEDORA, CUSTOM, BSD!!!! WOW!!, ETC
                 ostype = profile_os()
@@ -326,6 +333,7 @@ def use_module(module, all_trigger):
                 if ostype == "DEBIAN":
                     print_status(
                         "Preparing dependencies for module: " + module)
+
                     from src.platforms.debian import base_install_modules
                     # grab all the modules we need
                     deb_modules = module_parser(filename, "DEBIAN")
@@ -334,12 +342,12 @@ def use_module(module, all_trigger):
                         "Pre-reqs for %s have been installed." % (module))
 
                     # do some stuff to add metasploit
-                    if "metasploit" in filename:
-                        if check_kali() != "Kali":
-                            print_status(
-                                "Installing additional ruby2 libraries for MSF...")
-                            subprocess.Popen(
-                                "echo y | apt-add-repository ppa:brightbox/ruby-ng;apt-get update;apt-get --force-yes -y install ruby2.2 ruby2.2-dev", shell=True).wait()
+                    #if "metasploit" in filename:
+                    #    if check_kali() != "Kali":
+                    #        print_status(
+                    #            "Installing additional ruby2 libraries for MSF...")
+                    #        subprocess.Popen(
+                    #            "echo y | apt-add-repository ppa:brightbox/ruby-ng;apt-get update;apt-get --force-yes -y install ruby2.2 ruby2.2-dev", shell=True).wait()
 
                 # if OSTYPE is ARCHLINUX
                 if ostype == "ARCHLINUX":
@@ -417,7 +425,7 @@ def use_module(module, all_trigger):
                 # if we are using wget
                 if install_type.lower() == "wget":
                     print_status(
-                        "WGET was the selected method for installation because it plays better than curl -l with Sourceforge.")
+                        "WGET was the selected method for installation because it plays better than curl -l with recursive URLs.")
                     proc = subprocess.Popen("cd %s && wget -q %s" % (install_location, repository_location),
                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
                     print_status(
@@ -572,20 +580,19 @@ while 1:
                         filename = os.path.join(path, name)
                         # strip un-needed files
 
-                        if not "__init__.py" in filename and not ignore_module(filename):
-                            # shorten it up a little bit
-                            filename_short = filename.replace(
-                                os.getcwd() + "/", "")
-                            filename_short = filename_short.replace(".py", "")
-                            # check if empty directory - if so purge it before
-                            # anything else
-                            check_blank_dir(path)
-                            print_status(
-                                "Installing and/or updating: " + filename_short)
-                            # run the module for install
-                            use_module(filename_short, "1")
-                            # sleep a sec
-                            time.sleep(0.2)
+                        #if not "__init__.py" in filename and not ignore_module(filename):
+                        # shorten it up a little bit
+                        filename_short = filename.replace(
+                        	os.getcwd() + "/", "")
+                        filename_short = filename_short.replace(".py", "")
+                        # check if empty directory - if so purge it before
+                        # anything else
+                        check_blank_dir(path)
+                        print_status("Installing and/or updating: " + filename_short)
+                        # run the module for install
+                        use_module(filename_short, "1")
+                        # sleep a sec
+                        time.sleep(0.2)
 
                 # clear the screen
                 os.system("clear")
